@@ -52,11 +52,17 @@ export function createOverlayWindow(): BrowserWindow {
 }
 
 export function showReminder(payload: ReminderPayload, position: OverlayPosition): void {
-  if (!overlayWindow || overlayWindow.isDestroyed()) return
-  overlayWindow.setBounds({ ...boundsFor(position), width: WIDTH, height: HEIGHT })
+  if (!overlayWindow || overlayWindow.isDestroyed()) {
+    console.error('[overlay] window missing')
+    return
+  }
+  const bounds = { ...boundsFor(position), width: WIDTH, height: HEIGHT }
+  console.log('[overlay] showing at', JSON.stringify(bounds))
+  overlayWindow.setBounds(bounds)
   overlayWindow.webContents.send('reminder:show', payload)
   overlayWindow.show()
   overlayWindow.moveTop()
+  console.log('[overlay] visible =', overlayWindow.isVisible())
 }
 
 export function sendBuddyState(state: ReminderPayload['state'], message: string): void {

@@ -118,6 +118,10 @@ app.whenReady().then(() => {
   registerIpc()
   timer.start()
 
+  if (process.env.DEBUG_OVERLAY === '1') {
+    setTimeout(() => triggerReminder(), 500)
+  }
+
   powerMonitor.on('resume', () => timer.recheck())
   powerMonitor.on('unlock-screen', () => timer.recheck())
 
