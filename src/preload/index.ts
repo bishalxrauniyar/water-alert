@@ -1,22 +1,34 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
+import { AppSettings, BuddyApi, BuddyState, Ipc, ReminderPayload } from '../shared/types'
 
-// Custom APIs for renderer
-const api = {}
+function subscribe<T>(channel: string, cb: (payload: T, ...rest: unknown[]) => void): () => void {
+  const listener = (_event: Electron.IpcRendererEvent, payload: T, ...rest: unknown[]): void =>
+    cb(payload, ...rest)
+  ipcRenderer.on(channel, listener)
+  return () => ipcRenderer.removeListener(channel, listener)
+}
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
+const api: BuddyApi = {
+  drink: () => ipcRenderer.send(Ipc.actionDrink),
+  notNow: () => ipcRenderer.send(Ipc.actionNotNow),
+  snooze: () => ipcRenderer.send(Ipc.actionSnooze),
+  dismiss: () => ipcRenderer.send(Ipc.overlayDismiss),
+  previewBuddy: () => ipcRenderer.send(Ipc.overlayPreview),
+  getSettings: () => ipcRenderer.invoke(Ipc.settingsGet),
+  updateSettings: (patch: Partial<AppSettings>) => ipcRenderer.invoke(Ipc.settingsUpdate, patch),
+  onReminder: (cb) => subscribe<ReminderPayload>(Ipc.reminderShow, cb),
+  onBuddyState: (cb) =>
+    subscribe<BuddyState>(Ipc.buddyState, (state, message) => cb(state, message as string)),
+  onSettingsChanged: (cb) => subscribe<AppSettings>(Ipc.settingsChanged, cb)
+}
+
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('buddy', api)
   } catch (error) {
     console.error(error)
   }
 } else {
   // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+  window.buddy = api
 }

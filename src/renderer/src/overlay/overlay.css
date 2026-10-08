@@ -1,0 +1,383 @@
+:root {
+  --card-bg: rgba(255, 255, 255, 0.96);
+  --ink: #123;
+  --muted: #5b6b7c;
+  --blue: #2f80ed;
+  --blue-dark: #1b60c8;
+  --green: #16b364;
+  --radius: 22px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.overlay-root {
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+}
+
+.card {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 18px 18px;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow:
+    0 18px 50px rgba(15, 40, 80, 0.28),
+    0 2px 8px rgba(15, 40, 80, 0.12);
+  backdrop-filter: blur(16px);
+  animation: card-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+}
+.close:hover {
+  color: var(--ink);
+}
+
+.bubble {
+  position: relative;
+  max-width: 100%;
+  padding: 10px 16px;
+  background: #eef4ff;
+  border: 2px solid #d5e4ff;
+  border-radius: 16px;
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---------- buddy ---------- */
+.buddy {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.blob {
+  position: relative;
+  width: 118px;
+  height: 104px;
+  background: radial-gradient(circle at 35% 28%, #7ec8ff, #2f80ed 70%);
+  border-radius: 52% 48% 50% 50% / 58% 58% 42% 42%;
+  box-shadow: inset -6px -10px 18px rgba(9, 46, 105, 0.25);
+  animation: breathe 2.6s ease-in-out infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.02);
+  }
+}
+
+.eyes {
+  display: flex;
+  gap: 22px;
+  margin-top: -6px;
+}
+
+.eye {
+  width: 12px;
+  height: 14px;
+  background: #0b2545;
+  border-radius: 50%;
+  position: relative;
+}
+.eye::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.mouth {
+  margin-top: 10px;
+  width: 26px;
+  height: 12px;
+  border: 3px solid #0b2545;
+  border-top: none;
+  border-radius: 0 0 26px 26px;
+  background: transparent;
+}
+
+.cheek {
+  position: absolute;
+  top: 58px;
+  width: 14px;
+  height: 8px;
+  background: rgba(255, 130, 150, 0.55);
+  border-radius: 50%;
+}
+.cheek-l {
+  left: 16px;
+}
+.cheek-r {
+  right: 16px;
+}
+
+.bottle {
+  font-size: 46px;
+  transform-origin: 50% 90%;
+  animation: bottle-wave 2.2s ease-in-out infinite;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.18));
+}
+
+@keyframes bottle-wave {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+/* emotion variants */
+.buddy--thirsty .mouth {
+  border-radius: 50%;
+  height: 14px;
+  width: 16px;
+  border: 3px solid #0b2545;
+}
+.buddy--thirsty .bottle {
+  animation: bottle-shake 0.5s ease-in-out infinite;
+}
+
+@keyframes bottle-shake {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+}
+
+.buddy--cheer .blob {
+  animation: cheer-bounce 0.6s ease-in-out infinite;
+}
+.buddy--cheer .eye {
+  height: 8px;
+  background: transparent;
+  border-top: 4px solid #0b2545;
+  border-radius: 50%;
+}
+.buddy--cheer .eye::after {
+  display: none;
+}
+.buddy--cheer .mouth {
+  height: 18px;
+  width: 34px;
+  background: #0b2545;
+  border: none;
+  border-radius: 0 0 34px 34px;
+  overflow: hidden;
+}
+.buddy--cheer .bottle {
+  animation: bottle-drink 0.9s ease-in-out infinite;
+}
+
+@keyframes cheer-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+@keyframes bottle-drink {
+  0%,
+  100% {
+    transform: rotate(-20deg) translateY(-6px);
+  }
+  50% {
+    transform: rotate(-35deg) translateY(-16px);
+  }
+}
+
+.buddy--sad .mouth {
+  border-radius: 26px 26px 0 0;
+  border-top: none;
+  border-bottom: 3px solid #0b2545;
+  height: 10px;
+}
+.buddy--sad .bottle {
+  animation: bottle-droop 2.4s ease-in-out infinite;
+}
+.buddy--sad .blob {
+  animation: sad-sway 2.4s ease-in-out infinite;
+}
+
+@keyframes bottle-droop {
+  0%,
+  100% {
+    transform: rotate(14deg) translateY(8px);
+  }
+  50% {
+    transform: rotate(18deg) translateY(10px);
+  }
+}
+
+@keyframes sad-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+.fx {
+  position: absolute;
+  font-size: 18px;
+  animation: fx-float 1.6s ease-in-out infinite;
+}
+.fx-sweat {
+  top: 6px;
+  right: 26%;
+}
+.fx-sparkle {
+  font-size: 16px;
+}
+.fx-sparkle.s1 {
+  top: 10px;
+  left: 24%;
+}
+.fx-sparkle.s2 {
+  top: 34px;
+  right: 22%;
+  animation-delay: 0.5s;
+}
+.fx-zzz {
+  top: 4px;
+  right: 28%;
+}
+
+@keyframes fx-float {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(-7px);
+    opacity: 0.5;
+  }
+}
+
+/* ---------- actions ---------- */
+.actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actions-row {
+  display: flex;
+  gap: 8px;
+}
+.actions-row .btn {
+  flex: 1;
+}
+
+.btn {
+  border: none;
+  border-radius: 14px;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(22, 179, 100, 0.35);
+  font-size: 15px;
+  padding: 13px 14px;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #119c56;
+}
+
+.btn-ghost {
+  background: #eef2f7;
+  color: var(--ink);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: #e2e8f0;
+}

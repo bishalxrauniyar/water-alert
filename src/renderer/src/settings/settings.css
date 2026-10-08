@@ -1,0 +1,150 @@
+:root {
+  --ink: #123;
+  --muted: #5b6b7c;
+  --line: #e6ecf3;
+  --blue: #2f80ed;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  background: #f7fafd;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.settings-root {
+  padding: 26px 26px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 100vh;
+}
+
+.settings-root.loading {
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+header h1 {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+header p {
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.section {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.field > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.inline input {
+  width: 84px;
+  padding: 8px 10px;
+  font-size: 15px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fbfdff;
+}
+.inline em {
+  font-style: normal;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.positions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: #fbfdff;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip--on {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  cursor: pointer;
+}
+.toggle input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--blue);
+}
+
+.preview {
+  border: none;
+  background: #16b364;
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 700;
+  border-radius: 11px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.preview:hover:not(:disabled) {
+  background: #119c56;
+}
+.preview:disabled {
+  background: #b9c4d0;
+  cursor: default;
+}
+
+.hint {
+  font-size: 12.5px;
+  color: var(--muted);
+  text-align: center;
+}
+
+footer {
+  margin-top: auto;
+  font-size: 11.5px;
+  color: #93a1b1;
+  text-align: center;
+}

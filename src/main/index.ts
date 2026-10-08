@@ -1,74 +1,132 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import { app, ipcMain, powerMonitor, BrowserWindow } from 'electron'
+import { electronApp, optimizer } from '@electron-toolkit/utils'
+import { AppSettings, Ipc, ReminderPayload } from '../shared/types'
+import { SettingsStore } from './store'
+import { TimerEngine } from './timer'
+import {
+  createOverlayWindow,
+  hideOverlay,
+  sendBuddyState,
+  showReminder
+} from './overlay'
+import { openSettingsWindow } from './settings-window'
+import { createTray, setTrayPaused, TrayCallbacks } from './tray'
 
-function createWindow(): void {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
-  })
+let store: SettingsStore
+let timer: TimerEngine
+let trayCallbacks: TrayCallbacks
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
+const THIRSTY_MESSAGES = [
+  'Time to drink water! 💧',
+  'Hydration break — grab your bottle!',
+  'Your body is asking for water 💧',
+  'Drink up! Stay hydrated!'
+]
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
-
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+function broadcastSettings(): void {
+  for (const win of BrowserWindow.getAllWindows()) {
+    win.webContents.send(Ipc.settingsChanged, store.data)
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+function triggerReminder(): void {
+  if (store.data.paused) return
+  const message = THIRSTY_MESSAGES[Math.floor(Math.random() * THIRSTY_MESSAGES.length)]
+  const payload: ReminderPayload = {
+    state: 'thirsty',
+    message,
+    snoozeLabel: `Remind in ${store.data.snoozeMinutes} min`
+  }
+  showReminder(payload, store.data.position)
+}
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+function applySettings(patch: Partial<AppSettings>): AppSettings {
+  const settings = store.update(patch)
+  if ('paused' in patch) timer.setPaused(settings.paused)
+  if ('intervalMinutes' in patch && !settings.paused && !('snoozeMinutes' in patch)) {
+    timer.reset()
+  }
+  if ('launchAtLogin' in patch) {
+    app.setLoginItemSettings({ openAtLogin: settings.launchAtLogin })
+  }
+  setTrayPaused(settings.paused, trayCallbacks)
+  broadcastSettings()
+  return settings
+}
+
+function registerIpc(): void {
+  ipcMain.handle(Ipc.settingsGet, () => store.data)
+
+  ipcMain.handle(Ipc.settingsUpdate, (_event, patch: Partial<AppSettings>) => applySettings(patch))
+
+  ipcMain.on(Ipc.actionDrink, () => {
+    store.logDrink()
+    sendBuddyState('cheer', 'Ahhh… refreshing! 😌')
+    setTimeout(() => {
+      hideOverlay()
+      timer.reset()
+    }, 2400)
+  })
+
+  ipcMain.on(Ipc.actionNotNow, () => {
+    hideOverlay()
+    timer.reset()
+  })
+
+  ipcMain.on(Ipc.actionSnooze, () => {
+    hideOverlay()
+    timer.snooze()
+  })
+
+  ipcMain.on(Ipc.overlayDismiss, () => {
+    hideOverlay()
+  })
+
+  ipcMain.on(Ipc.overlayPreview, () => {
+    showReminder({
+      state: 'idle',
+      message: 'This is how I will remind you 💧',
+      snoozeLabel: `Remind in ${store.data.snoozeMinutes} min`
+    }, store.data.position)
+  })
+}
+
+app.whenReady().then(() => {
+  electronApp.setAppUserModelId('com.bishalx.waterbuddy')
+
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  store = new SettingsStore()
+  timer = new TimerEngine(
+    () => store.data.intervalMinutes * 60_000,
+    () => store.data.snoozeMinutes * 60_000
+  )
+  timer.on('trigger', triggerReminder)
+  timer.setPaused(store.data.paused)
 
-  createWindow()
+  trayCallbacks = {
+    onPreview: () => triggerReminder(),
+    onTogglePause: (paused) => applySettings({ paused }),
+    onOpenSettings: () => openSettingsWindow(),
+    onQuit: () => app.quit()
+  }
 
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  createOverlayWindow()
+  createTray(trayCallbacks)
+  registerIpc()
+  timer.start()
+
+  powerMonitor.on('resume', () => timer.recheck())
+  powerMonitor.on('unlock-screen', () => timer.recheck())
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) openSettingsWindow()
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  // Tray-resident app: keep running in background on all platforms.
+  // User quits via tray menu or Cmd+Q.
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
