@@ -1,6 +1,16 @@
-# drinkwater
+# DrinkWater Buddy
 
-An Electron application with React and TypeScript
+A friendly desktop buddy that floats over all your apps and gently reminds you to drink water at configurable intervals. 
+
+![DrinkWater Buddy overlay screenshot](./screenshot.png)
+
+- Cute blob mascot always holding a water bottle
+- Overlay floats above all windows (macOS + Windows)
+- Three actions: Drink ✓, Not now, Remind in 5 min
+- Wall-clock timer (survives sleep/lid close)
+- Tray-resident: stays out of your way
+- Auto-start at login toggle
+- Settings window for interval, snooze, and position
 
 ## Recommended IDE Setup
 
@@ -32,3 +42,7 @@ $ npm run build:mac
 # For Linux
 $ npm run build:linux
 ```
+
+## Credits
+
+Cute mascot animations and SVGs are hand-crafted; inspired by hydration reminders.
