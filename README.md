@@ -2,8 +2,7 @@
 
 A friendly desktop buddy that floats over all your apps and gently reminds you to drink water at configurable intervals. 
 
-![DrinkWater Buddy overlay screenshot](./screenshot.png)
-
+![DrinkWater Buddy overlay screenshot
 - Cute blob mascot always holding a water bottle
 - Overlay floats above all windows (macOS + Windows)
 - Three actions: Drink ✓, Not now, Remind in 5 min
